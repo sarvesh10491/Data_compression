@@ -3,15 +3,15 @@
 #include <math.h>
 #include <string>
 
-
 #define len(x) ((int)log10(x)+1)
+#define charCount 27
 
 using namespace std;
 
 // 81 = 8.1%, 128 = 12.8% and so on. The 27th frequency is the space.
-int letterFreq [27] = {81, 15, 28, 43, 128, 23, 20, 61, 71, 2, 1, 40, 24, 69, 76, 20, 1, 61, 64, 91, 28, 10, 24, 1, 20, 1, 130};
+static int letterFreq [charCount] = {81, 15, 28, 43, 128, 23, 20, 61, 71, 2, 1, 40, 24, 69, 76, 20, 1, 61, 64, 91, 28, 10, 24, 1, 20, 1, 130};
 
-/* Node of the huffman tree */
+// Node of the huffman tree
 struct node{
     int value;
     char letter;
@@ -29,12 +29,12 @@ void printEncodingTable(int codeTable[]);
 
 // Builds tree from all subtrees based on Huffman algorithm
 void buildHuffmanTree(Node **tree){
-    Node *array[27];
+    Node *array[charCount];
     Node *temp;
-    int subTrees = 27;
+    int subTrees = charCount;
     int smallOne, smallTwo;
 
-    for(int i=0; i<27; i++){
+    for(int i=0; i<charCount; i++){
         array[i] = (Node *)malloc(sizeof(Node));
         array[i]->value = letterFreq[i];
         array[i]->letter = i;
@@ -42,14 +42,9 @@ void buildHuffmanTree(Node **tree){
         array[i]->right = NULL;
     }
 
-    // printTrees(array);
-
     while(subTrees > 1){
-        // cout << "\nSubtrees " << subTrees << endl;
         smallOne = findSmaller(array, -1);
         smallTwo = findSmaller(array, smallOne);
-
-        // cout << smallOne << " " << smallTwo << "|" << endl;
 
         temp = array[smallOne];
         array[smallOne] = (Node *)malloc(sizeof(Node));
@@ -59,13 +54,10 @@ void buildHuffmanTree(Node **tree){
         array[smallOne]->right = temp;
         array[smallTwo]->value = -1;
 
-        // printOneTree(array[smallOne]);
-
         subTrees--;
     }
 
     *tree = array[smallOne];
-    // printTrees(array);
 }
 
 int findSmaller(Node *array[], int differentFrom){  // Finds and returns the small sub-tree in the forest
@@ -84,7 +76,7 @@ int findSmaller(Node *array[], int differentFrom){  // Finds and returns the sma
         smaller = i;
     }
 
-    for(i=1; i<27; i++){
+    for(i=1; i<charCount; i++){
         if(array[i]->value == -1)
             continue;
         if(i == differentFrom)
@@ -103,7 +95,7 @@ void buildEncodingTable(int codeTable[], Node *tree){
 
     fillTable(codeTable, tree, 0);  // Create encoding table
 
-    for(int i=0;i<27;i++){  // Invert the codes
+    for(int i=0;i<charCount;i++){  // Invert the codes
         n = codeTable[i];
         copy = 0;
         while(n>0){
@@ -115,7 +107,7 @@ void buildEncodingTable(int codeTable[], Node *tree){
 }
 
 void fillTable(int codeTable[], Node *tree, int Code){
-    if(tree->letter < 27)
+    if(tree->letter < charCount)
         codeTable[(int)tree->letter] = Code;
     else{
         fillTable(codeTable, tree->left, Code*10+1);
@@ -124,7 +116,7 @@ void fillTable(int codeTable[], Node *tree, int Code){
 }
 
 void printEncodingTable(int codeTable[]){
-    for(int i=0; i<27; i++){
+    for(int i=0; i<charCount; i++){
         cout << codeTable[i] << endl;
     }
 }
@@ -153,7 +145,6 @@ void compressFile(ifstream &fin, ofstream &fout, int codeTable[]){
                 codeLen = len(codeTable[ch-97]);
                 chCode = codeTable[ch-97];
             }
-            // cout << ch << " - " << chCode << " - " << codeLen << endl;
 
             while(codeLen > 0){
                 compressedBits++;
@@ -179,7 +170,7 @@ void compressFile(ifstream &fin, ofstream &fout, int codeTable[]){
         fout.put(x);
     }
 
-    /*print details of compression on the screen*/
+    // Print compression stats
     fprintf(stderr, "Original bits = %d\n", originalBits*8);
     fprintf(stderr, "Compressed bits = %d\n", compressedBits);
     fprintf(stderr, "Saved memory = %.2f%%\n", ((float)compressedBits/(originalBits*8))*100);
@@ -224,7 +215,7 @@ void decompressFile(ifstream &fin, ofstream &fout, Node *tree){
 
 int main(int argc, char** argv){
     Node *tree;
-    int codeTable[27];
+    int codeTable[charCount];
 
     ifstream fin;
     ofstream fout;
