@@ -4,12 +4,23 @@
 #include <string>
 
 #define len(x) ((int)log10(x)+1)
-#define charCount 27
+#define charCount 94
 
 using namespace std;
 
-// 81 = 8.1%, 128 = 12.8% and so on. The 27th frequency is the space.
-static int letterFreq [charCount] = {81, 15, 28, 43, 128, 23, 20, 61, 71, 2, 1, 40, 24, 69, 76, 20, 1, 61, 64, 91, 28, 10, 24, 1, 20, 1, 130};
+// Character frequencies. {0:a, .. , 26:z, 27:SPACE} etc.
+// static int letterFreq [charCount] = {81, 15, 28, 43, 128, 23, 20, 61, 71, 2, 1, 40, 24, 69, 76, 20, 1, 61, 64, 91, 28, 10, 24, 1, 20, 1, 130};
+static int letterFreq[charCount] = {
+7528,2291,2573,2764,7093,1248,1853,2413,4697,837,1968,3777,2999,4569,5170,2456,346,4960,4611,3874,2102,834,1245,573,1525,633,
+// a-z
+130,81,66,70,97,42,50,54,71,36,46,78,78,75,73,74,15,85,108,80,35,24,32,14,26,17,
+// A-Z
+2744,4351,3123,2433,1943,1886,1756,1621,1662,1796,
+// 0-9
+20,9,31,9,9,10,9,9,9,9,24,9,32,9,9,9,9,24,9,9,9,9,12,9,9,9,9,9,9,9,9,9
+//-	SPACE	!	"	#	$	%	&	(	)	*	,	.	/	:	;	?	@	[	\	]	^	_	`	{	|	}	~	+	<	=	>
+};
+
 
 // Node of the huffman tree
 struct node{
@@ -21,10 +32,10 @@ struct node{
 typedef struct node Node;
 
 void buildHuffmanTree(Node **tree);
-void buildEncodingTable(int codeTable[], Node *tree);
-void fillTable(int codeTable[], Node *tree, int Code);
+void buildEncodingTable(long codeTable[], Node *tree);
+void fillTable(long codeTable[], Node *tree, long Code);
 int findSmaller(Node *array[], int differentFrom);
-void printEncodingTable(int codeTable[]);
+void printEncodingTable(long codeTable[]);
 
 
 // Builds tree from all subtrees based on Huffman algorithm
@@ -90,15 +101,15 @@ int findSmaller(Node *array[], int differentFrom){  // Finds and returns the sma
 
 
 // Builds the table with the bits for each letter from Humffman tree.
-void buildEncodingTable(int codeTable[], Node *tree){
-    int n, copy;
+void buildEncodingTable(long codeTable[], Node *tree){
+    long n, copy;
 
     fillTable(codeTable, tree, 0);  // Create encoding table
 
-    for(int i=0;i<charCount;i++){  // Invert the codes
+    for(int i=0; i<charCount; i++){  // Invert the codes
         n = codeTable[i];
         copy = 0;
-        while(n>0){
+        while(n > 0){
             copy = copy*10 + n%10;
             n /= 10;
         }
@@ -106,7 +117,7 @@ void buildEncodingTable(int codeTable[], Node *tree){
     }
 }
 
-void fillTable(int codeTable[], Node *tree, int Code){
+void fillTable(long codeTable[], Node *tree, long Code){
     if(tree->letter < charCount)
         codeTable[(int)tree->letter] = Code;
     else{
@@ -115,7 +126,7 @@ void fillTable(int codeTable[], Node *tree, int Code){
     }
 }
 
-void printEncodingTable(int codeTable[]){
+void printEncodingTable(long codeTable[]){
     for(int i=0; i<charCount; i++){
         cout << codeTable[i] << endl;
     }
@@ -123,27 +134,84 @@ void printEncodingTable(int codeTable[]){
 
 
 
-void compressFile(ifstream &fin, ofstream &fout, int codeTable[]){
+void compressFile(ifstream &fin, ofstream &fout, long codeTable[]){
     if(!fin || !fout){
         cout << "Error in opening file!\n";
         return;
     }
 
     char ch, bit, x = 0;
-    int chCode, codeLen, bitsLeft = 8;
+    int codeLen, bitsLeft = 8;
     int originalBits = 0, compressedBits = 0;
+    long chCode;
 
     while(fin){
         if(fin.get(ch)){
             originalBits++;
 
-            if(ch == 32){
-                codeLen = len(codeTable[26]);
-                chCode = codeTable[26];
-            }
-            else{
+            if(ch >= 97 && ch <= 122){   // a-z
                 codeLen = len(codeTable[ch-97]);
                 chCode = codeTable[ch-97];
+            }
+            if(ch >= 65 && ch <= 90){   // A-Z
+                codeLen = len(codeTable[ch-39]);
+                chCode = codeTable[ch-39];
+            }
+            if(ch >= 48 && ch <= 57){   // 0-9
+                codeLen = len(codeTable[ch+4]);
+                chCode = codeTable[ch+4];
+            }
+            if(ch == 45){   // -
+                codeLen = len(codeTable[62]);
+                chCode = codeTable[62];
+            }
+            if(ch == 32){   // SPACE
+                codeLen = len(codeTable[63]);
+                chCode = codeTable[63];
+            }
+            if(ch == 33){   // !
+                codeLen = len(codeTable[64]);
+                chCode = codeTable[64];
+            }
+            if(ch == 34){   // "
+                codeLen = len(codeTable[65]);
+                chCode = codeTable[65];
+            }
+            if(ch == 35){   // #
+                codeLen = len(codeTable[66]);
+                chCode = codeTable[66];
+            }
+            if(ch == 36){   // $
+                codeLen = len(codeTable[67]);
+                chCode = codeTable[67];
+            }
+            if(ch == 37){   // %
+                codeLen = len(codeTable[68]);
+                chCode = codeTable[68];
+            }
+            if(ch == 38){   // &
+                codeLen = len(codeTable[69]);
+                chCode = codeTable[69];
+            }
+            if(ch == 40){   // (
+                codeLen = len(codeTable[70]);
+                chCode = codeTable[70];
+            }
+            if(ch == 41){   // )
+                codeLen = len(codeTable[71]);
+                chCode = codeTable[71];
+            }
+            if(ch == 42){   // *
+                codeLen = len(codeTable[72]);
+                chCode = codeTable[72];
+            }
+            if(ch == 44){   // ,
+                codeLen = len(codeTable[73]);
+                chCode = codeTable[73];
+            }
+            if(ch == 46){   // .
+                codeLen = len(codeTable[74]);
+                chCode = codeTable[74];
             }
 
             while(codeLen > 0){
@@ -173,7 +241,7 @@ void compressFile(ifstream &fin, ofstream &fout, int codeTable[]){
     // Print compression stats
     fprintf(stderr, "Original bits = %d\n", originalBits*8);
     fprintf(stderr, "Compressed bits = %d\n", compressedBits);
-    fprintf(stderr, "Saved memory = %.2f%%\n", ((float)compressedBits/(originalBits*8))*100);
+    fprintf(stderr, "Memory consumption to original = %.2f%%\n", ((float)compressedBits/(originalBits*8))*100);
 
 }
 
@@ -201,10 +269,40 @@ void decompressFile(ifstream &fin, ofstream &fout, Node *tree){
                     cur = cur->right;
 
                 if(cur->letter != 127){
-                    if(cur->letter == 26)   // SPACE
+                    if(cur->letter < 26)   // a-z
+                        fout.put(cur->letter+97);
+                    if(cur->letter >= 26 && cur->letter <= 51)   // A-Z
+                        fout.put(cur->letter+39);
+                    if(cur->letter >= 52 && cur->letter <= 61)   // 0-9
+                        fout.put(cur->letter-4);
+                    if(cur->letter == 62)   // -
+                        fout.put(45);
+                    if(cur->letter == 63)   // SPACE
                         fout.put(32);
-                    else
-                        fout.put(cur->letter+97);   // a-z
+                    if(cur->letter == 64)   // !
+                        fout.put(33);
+                    if(cur->letter == 65)   // "
+                        fout.put(34);
+                    if(cur->letter == 66)   // #
+                        fout.put(35);
+                    if(cur->letter == 67)   // $
+                        fout.put(36);
+                    if(cur->letter == 68)   // %
+                        fout.put(37);
+                    if(cur->letter == 69)   // &
+                        fout.put(38);
+                    if(cur->letter == 70)   // (
+                        fout.put(40);
+                    if(cur->letter == 71)   // )
+                        fout.put(41);
+                    if(cur->letter == 72)   // *
+                        fout.put(42);
+                    if(cur->letter == 73)   // ,
+                        fout.put(44);
+                    if(cur->letter == 74)   // .
+                        fout.put(46);
+
+
                     cur = tree;
                 }
             }
@@ -215,7 +313,7 @@ void decompressFile(ifstream &fin, ofstream &fout, Node *tree){
 
 int main(int argc, char** argv){
     Node *tree;
-    int codeTable[charCount];
+    long codeTable[charCount];
 
     ifstream fin;
     ofstream fout;
@@ -230,14 +328,14 @@ int main(int argc, char** argv){
         cout << "Compressing file..\n\n";
 
         fin.open("somefile.txt", ios::in);
-        fout.open("compressed_somefile.txt", ios::out);
+        fout.open("compressed_somefile.cmpr", ios::out);
 
         compressFile(fin, fout, codeTable);
     }
     if(std::string(argv[1]) == "-d"){
         cout << "Decompressing file..\n\n";
 
-        fin.open("compressed_somefile.txt", ios::in);
+        fin.open("compressed_somefile.cmpr", ios::in);
         fout.open("decompressed_somefile.txt", ios::out);
 
         decompressFile(fin, fout, tree);
