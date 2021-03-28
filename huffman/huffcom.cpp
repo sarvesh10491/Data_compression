@@ -223,7 +223,7 @@ void compressFile(ifstream &fin, ofstream &fout, long codeTable[]){
                 codeLen--;
                 bitsLeft--;
 
-                if (bitsLeft == 0){     // if no bits left to OR, write x to output file clear & set bitsLeft for next char
+                if(bitsLeft == 0){     // if no bits left to OR, write x to output file clear & set bitsLeft for next char
                     fout.put(x);
                     x = 0;
                     bitsLeft = 8;
@@ -255,7 +255,7 @@ void decompressFile(ifstream &fin, ofstream &fout, Node *tree){
     Node *cur;
     cur = tree;
     char ch, bit;
-    char mask = 1 << 7;     // Mask 1000 0000 used ti strip MSBs
+    char mask = 1 << 7;     // Use mask 1000 0000 to strip MSBs
 
     while(fin){
         if(fin.get(ch)){
